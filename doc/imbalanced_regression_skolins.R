@@ -24,7 +24,10 @@ x.totals <- apply(x.totals, 2, function(x) replace(x, is.na(x), 0))
 x.full[, 9:13] <- x.totals
 # head(x.full, 5)
 # formatting into a matrix
-x.fullmat <- model.matrix(totals.transactionRevenue ~ ., data = x.full)
+x.fullmat <- as.matrix(x.full)
+x.fullmat <- na.omit(x.fullmat)
+dim(x.fullmat) # we now have about 653k rows
+y.rev <- as.numeric(x.fullmat[, 13])
 
 # LASSO regression w/ cross-validation (alpha = 1)
-fit1 <- cv.glmnet(x.full, train.rev, alpha = 1)
+fit1 <- cv.glmnet(x.fullmat, y.rev, alpha = 1)
