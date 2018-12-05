@@ -1,5 +1,6 @@
 # Project 5: Imbalanced Regression
 # Classification via Penalized LDA
+# Sam Kolins (sk3651)
 
 # install.packages("penalizedLDA")
 library(penalizedLDA)
