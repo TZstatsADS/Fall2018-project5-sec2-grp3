@@ -79,3 +79,5 @@ metrics <- cbind(metrics, c(f1.major, f1))
 colnames(metrics) <- c("Precision", "Recall", "F1-Score")
 metrics
 # F1 score of the minority class is 41%
+
+# performance may be poor because our numerical variables are not likely to be normal/Gaussian
