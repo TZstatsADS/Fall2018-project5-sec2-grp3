@@ -86,14 +86,14 @@ colnames(metrics) <- c("Precision", "Recall", "F1-Score")
 metrics
 # F1 score of the minority class is 41%
 
-# Cohen's kappa
+## Cohen's kappa
 # measures level of agreement between predictions and true classes factoring in imbalance ratios
 # can be thought of as an "imbalance-adjusted accuracy level"
 comparison <- cbind(penlda$ypred, paid.test)
 kappa2(comparison)
 # here, kappa = 0.4 (40%), which feels like it better captures the performance metrics
 
-# ROC curve
+## ROC curve
 resp <- paid.test - 1
 pred <- as.vector(penlda$ypred - 1)
 # roc() function prefers 0 and 1 as binary classes rather than 1 and 2
@@ -103,3 +103,8 @@ auc(roc.curve)
 # AUC = 0.7995, which is not terrible. The classifier is a good bit better than random chance
 
 # performance may be poor because our numerical variables are not likely to be normal/Gaussian
+# we can try optimizing lambda though to see if the metrics are any better there
+
+# first pass:
+lams1 <- c(1e-4, 1e-3, 0.01, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)
+cv1 <- PenalizedLDA.cv(train.mat[, -1], paid.train, lambdas = lams1, K = 1)
