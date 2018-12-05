@@ -108,3 +108,30 @@ auc(roc.curve)
 # first pass:
 lams1 <- c(1e-4, 1e-3, 0.01, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10)
 cv1 <- PenalizedLDA.cv(train.mat[, -1], paid.train, lambdas = lams1, K = 1)
+# mean cross-validation errors
+cv1$errs
+goodlam1 <- cv1$bestlambda
+goodlam1.se <- cv1$bestlambda.1se
+
+# second (and final) pass:
+lams2 <- seq(goodlam1, goodlam1.se, length.out = 10)
+cv2 <- PenalizedLDA.cv(train.mat[, -1], paid.train, lambdas = lams2, K = 1)
+# mean cross-validation errors (they are very close to each other)
+cv2$errs
+bestlam <- cv2$bestlambda
+
+# running another penalized LDA with the new optimized lambda
+penlda2 <- PenalizedLDA(train.mat[, -1], paid.train, 
+                        xte = test.mat[, -1], lambda = bestlam, K = 1)
+# new metric table and confusion matrix
+conf2 <- table(penlda2$ypred, paid.test)
+conf2
+# ...the confusion matrix has only one row for predictions.
+# that means it said every point belonged to class 1
+# it's automatically terrible
+
+# so how do we fix this?
+# well, we can try penalized logistic regression, which does not depend on any underlying
+# distribution assumptions in our data
+# this is good because our data has really awful distributions due to imbalance; the data
+# doesn't start to look nice until we remove all the unpaid customers
