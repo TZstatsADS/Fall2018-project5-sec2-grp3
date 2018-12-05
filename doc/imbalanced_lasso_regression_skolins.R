@@ -1,5 +1,6 @@
 # Project 5: Imbalanced Regression
 # Using LASSO Regression using Cleaned Data from preprocessing.R
+# Sam Kolins (sk3651)
 
 library(glmnet)
 library(ggplot2)
