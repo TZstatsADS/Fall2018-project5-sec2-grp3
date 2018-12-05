@@ -105,7 +105,7 @@ smote.f1 <- 2*(smote.rec*smote.prec)/(smote.rec+smote.prec); smote.f1
 eval.sum <- data.frame(method = c("Normal","ROSE","SMOTE"),
                        precision = c(prec,rose.prec,smote.prec),
                        recall = c(rec,rose.rec,smote.rec),
-                       F1-Score = c(f1,rose.f1,smote.f1))
+                       f1score = c(f1,rose.f1,smote.f1))
 
 save(eval.sum, file = "./data/cltree-eval.Rdata")
 
