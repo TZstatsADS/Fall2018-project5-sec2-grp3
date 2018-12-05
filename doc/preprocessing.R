@@ -17,6 +17,7 @@ options(scipen = 999)
 # Preprocessing
 dat <- train %>% 
   transmute(revenue = ifelse(is.na(log(totals.transactionRevenue)) == T, 0, log(totals.transactionRevenue)),
+            is.paid = as.factor(ifelse(revenue > 0, 1, 0)),
             browser = case_when(device.browser == "Chrome" ~ "chrome",
                                 device.browser %in% c("Safari", "Safari (in-app)") ~ "safari",
                                 device.browser == "Firefox" ~ "firefox",
