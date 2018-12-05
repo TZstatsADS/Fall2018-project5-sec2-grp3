@@ -27,13 +27,16 @@ cltree <- train(is.paid ~ .,
 ct.pred <- predict(cltree, newdata = test[,-1])
 
 # Confusion Matrix for the predicted classes (positive class is is.paid = 1)
-conf <- table(ct.pred, test$is.paid)
+conf <- table(ct.pred, test$is.paid); conf
 
 # Precision (true pos/true pos + false pos)
-conf[2,2]/sum(conf[2,])
+prec <- conf[2,2]/sum(conf[2,]); prec
 
 # Recall (true pos/true pos + false neg)
-conf[2,2]/sum(conf[,2])
+rec <- conf[2,2]/sum(conf[,2]); rec
+
+# F1 Score
+f1 <- 2*(rec*prec)/(rec+prec); f1
 
 
 # 2) ROSEd classification tree
@@ -54,12 +57,56 @@ rose.cltree <- train(factor(is.paid) ~ .,
 rose.ct.pred <- predict(rose.cltree, newdata = test[,-1])
 
 # Confusion Matrix for the predicted classes (positive class is is.paid = 1)
-conf <- table(rose.ct.pred, test$is.paid)
+rose.conf <- table(rose.ct.pred, test$is.paid); rose.conf
 
 # Precision (true pos/true pos + false pos)
-conf[2,2]/sum(conf[2,])
+rose.prec <- rose.conf[2,2]/sum(rose.conf[2,]); rose.prec
 
 # Recall (true pos/true pos + false neg)
-conf[2,2]/sum(conf[,2])
+rose.rec <- rose.conf[2,2]/sum(rose.conf[,2]); rose.rec
+
+# F1 Score
+rose.f1 <- 2*(rose.rec*rose.prec)/(rose.rec+rose.prec); rose.f1
+
+
+
+# 3) SMOTEd classification tree
+
+#Final SMOTEd dataset
+smote_train <- SMOTE(is.paid ~ ., data  = data.frame(train))
+
+# Fitting the model
+set.seed(100)
+smote.cltree <- train(factor(is.paid) ~ .,
+                     data = smote_train[,-1],
+                     parms = list(split = "gini"),
+                     method = "rpart",
+                     trControl = trainControl(method = "cv"))
+
+
+# Predicting the class labels for the test set
+smote.ct.pred <- predict(smote.cltree, newdata = test[,-1])
+
+# Confusion Matrix for the predicted classes (positive class is is.paid = 1)
+smote.conf <- table(smote.ct.pred, test$is.paid); smote.conf
+
+# Precision (true pos/true pos + false pos)
+smote.prec <- smote.conf[2,2]/sum(smote.conf[2,]); smote.prec
+
+# Recall (true pos/true pos + false neg)
+smote.rec <- smote.conf[2,2]/sum(smote.conf[,2]); smote.rec
+
+# F1 Score
+smote.f1 <- 2*(smote.rec*smote.prec)/(smote.rec+smote.prec); smote.f1
+
+
+# Summary
+
+eval.sum <- data.frame(method = c("Normal","ROSE","SMOTE"),
+                       precision = c(prec,rose.prec,smote.prec),
+                       recall = c(rec,rose.rec,smote.rec),
+                       F1-Score = c(f1,rose.f1,smote.f1))
+
+save(eval.sum, file = "./data/cltree-eval.Rdata")
 
 
