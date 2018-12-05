@@ -25,6 +25,11 @@ train.mat <- model.matrix(revenue ~ ., data = train)
 paid.train <- ifelse(train$revenue > 0, 1, 0)
 # 1 = paid, 0 = unpaid
 
-# using L1/LASSO penalization for logistic regression
+# using L1/LASSO penalization for logistic regression (choosing lambda via CV)
 # be patient, this takes some time!
 cv.lasso <- cv.glmnet(train.mat[, -1], paid.train, family = "binomial", alpha = 1)
+minlam.lasso <- cv.lasso$lambda.min
+plr.lasso <- glmnet(train.mat[, -1], paid.train, family = "binomial", 
+                    lambda = minlam.lasso, alpha = 1)
+# convergence not reached for the ideal lambda after max iterations
+# gave lambda = Inf so I'm not really sure what's going on here
