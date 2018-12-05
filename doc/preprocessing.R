@@ -23,13 +23,20 @@ dat <- train %>%
                                 device.browser %in% c("Edge", "Internet Explorer") ~ "edge",
                                 device.browser %in% c("Opera", "Opera Mini") ~ "opera",
                                 TRUE ~ "other"),
-            os = ifelse(is.na(device.operatingSystem) == T, "unknown", device.operatingSystem),
+            os = case_when(device.operatingSystem == "Windows" ~ "windows",
+                           device.operatingSystem == "Mackintosh" ~ "mackintosh",
+                           device.operatingSystem == "Android" ~ "android",
+                           device.operatingSystem == "iOS" ~ "ios",
+                           device.operatingSystem  == "Linux" ~ "linux",
+                           device.operatingSystem  == "ChromeOS" ~ "chromeos",
+                           is.na(device.operatingSystem) == T ~ "unknown",
+                           TRUE ~ "other"),
             device = device.deviceCategory,
             continent = ifelse(is.na(geoNetwork.continent) == T, "unknown", geoNetwork.continent),
             pageviews = ifelse(is.na(totals.pageviews) == T, 0, totals.pageviews),
             bounces = ifelse(is.na(totals.bounces) == T, 0, totals.bounces),
             medium = ifelse(is.na(trafficSource.medium) == T, "unknown", trafficSource.medium),
-            campaign = ifelse(is.na(trafficSource.campaign) == T, 0, trafficSource.campaign),
+            campaign = ifelse(is.na(trafficSource.campaign) == T, 0, 1),
             #keyword = trafficSource.keyword,
             channel = channelGrouping,
             #visitor = fullVisitorId,
@@ -46,6 +53,9 @@ dat <- train %>%
             hour = hour(as_datetime(train$visitStartTime)),
             month = month(as_datetime(train$visitStartTime)),
             day = weekdays(as_datetime(train$visitStartTime)))
+
+
+save(dat, file = "./data/cleaned.Rdata")
 
 # Paying Customers
 paid <- dat %>% filter(revenue > 0)
