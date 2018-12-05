@@ -6,6 +6,12 @@ library(penalizedLDA)
 # install.packages("psych")
 library(psych)
 # this is just for computing harmonic mean
+# install.packages("irr")
+library(irr)
+# for Cohen's kappa
+# install.packages("pROC")
+library(pROC)
+# for ROC curve
 
 # loading preprocessed data
 load("./output/cleaned.Rdata")
@@ -79,5 +85,21 @@ metrics <- cbind(metrics, c(f1.major, f1))
 colnames(metrics) <- c("Precision", "Recall", "F1-Score")
 metrics
 # F1 score of the minority class is 41%
+
+# Cohen's kappa
+# measures level of agreement between predictions and true classes factoring in imbalance ratios
+# can be thought of as an "imbalance-adjusted accuracy level"
+comparison <- cbind(penlda$ypred, paid.test)
+kappa2(comparison)
+# here, kappa = 0.4 (40%), which feels like it better captures the performance metrics
+
+# ROC curve
+resp <- paid.test - 1
+pred <- as.vector(penlda$ypred - 1)
+# roc() function prefers 0 and 1 as binary classes rather than 1 and 2
+roc.curve <- roc(resp, pred)
+plot(roc.curve)
+auc(roc.curve)
+# AUC = 0.7995, which is not terrible. The classifier is a good bit better than random chance
 
 # performance may be poor because our numerical variables are not likely to be normal/Gaussian
