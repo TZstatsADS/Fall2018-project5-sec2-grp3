@@ -11,9 +11,9 @@ library(xgboost)
 
 # Splitting the data into training and test
 set.seed(100)
-samp <- sample(nrow(dat), 0.7*nrow(dat), replace = FALSE)
-train <- dat[samp,]
-test <- dat[-samp,]
+samp <- sample(nrow(newdat), 0.7*nrow(newdat), replace = FALSE)
+train <- newdat[samp,]
+test <- newdat[-samp,]
 
 # Creating the grid of tuning parameters
 grid_default <- expand.grid(
@@ -117,6 +117,6 @@ xgbct.eval.sum <- data.frame(method = c("Normal","ROSE","SMOTE"),
                        recall = c(rec,rose.rec,smote.rec),
                        f1score = c(f1,rose.f1,smote.f1))
 
-save(xgbct.eval.sum, file = "./data/xgbtree-eval.Rdata")
+#save(xgbct.eval.sum, file = "./data/xgbtree-eval.Rdata")
 
 
