@@ -28,3 +28,11 @@ For regression, we are using the following models:
 Ideally, the end result of this project will be an "MSE/metrics table" of sorts where each row represents a classifier and each column represents a regresser (or vice versa). This will give us an easy visual indication of which model appears to work best for the data. For now, though, we move on to the challenges of preprocessing this particular data set.
 
 ## Preprocessing
+
+## One-Stage LASSO Regression
+
+## One-Stage XGBoost Regression
+
+## Two-Stage Models
+
+## Conclusion
