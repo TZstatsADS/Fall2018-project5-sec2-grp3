@@ -14,10 +14,6 @@ trainset<-dat[nsamp,]
 testset<-dat[-nsamp,]
 
 ntdf<-sparse.model.matrix(revenue~.,data=trainset)
-#tdf<-train[,-c(8,9,10,11,17,20:29,31:34)]
-
-#sparse_matrix <- sparse.model.matrix(totals.transactionRevenue ~ ., data = tdf)[,-12]
-#head(sparse_matrix)
 
 library(data.table)
 library(mltools)
@@ -60,6 +56,7 @@ evaluateModelingProcedure <- function(xMatrix, outcomeV, crossValPlan) {
                                                  label=outcomeV[ci$train],
                                                  objective= 'reg:linear',
                                                   eval_metric = "rmse",
+                                                  max_depth=20,
                                                   nrounds= nrounds,
                                                   verbose= 0,
                                                    nfold= 5)
@@ -68,6 +65,7 @@ evaluateModelingProcedure <- function(xMatrix, outcomeV, crossValPlan) {
                                   #model <- xgboost(data= ntdf,
                                                    label= outcomeV[ci$train],
                                                    objective= 'reg:linear',
+                                                   max_depth=20,
                                                    eval_metric='rmse',
                                                    nrounds= nrounds,
                                                    verbose= 0)
