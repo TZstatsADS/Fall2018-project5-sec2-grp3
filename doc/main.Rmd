@@ -1,0 +1,30 @@
+---
+title: 'Imbalanced Regression: An Empirical Case Study'
+author: "Sam Kolins, Atishay Sehgal, Deepika S. Namboothiri, Sarah Wu"
+date: "December 5, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+In this project, we will be investigating the issue of imbalanced regression in the Google Analytics customer revenue prediction data set available [here](https://www.kaggle.com/c/ga-customer-revenue-prediction) on Kaggle. In this Kaggle competition, entrants are challenged to predict customer revenue from customers who purchase items at the online Google Merchandise Store. This data set contains a host of explanatory variables, ranging from total pageviews to the time of accessing the site to the location of the customer (down to city or region if available), all for the purposes of predicting customer revenue (the response variable), available in the training data only. This may seem like a fairly pedestrian regression problem at first glance, but there is an interesting wrinkle that must be addressed; as you will see in the data, over 98% of the customers with recorded data do not spend money on anything in the store.
+
+The problem of **imbalanced _classification_** is well-known in data analysis. A naïve classifier using traditional methods will find that, in cases where the imbalance is especially strong (for example, a 90%-10% split between the majority and minority classes), it can just trivially assign every test point to the majority class and get a good accuracy score (in this case, with 90-10 split, the accuracy will be 90%, because every test point in the majority gets correctly predicted while every test point in the minority is incorrectly predicted). There are a host of ways to deal with imbalanced classification, some of which we tackle here.
+
+But the problem of **imbalanced _regression_** is actually a much more open problem. It seems hard to envision what an imbalanced regression problem might look like as imbalanced data sets seem to naturally imply categorization into classes. However, in the case of the Google Merchandise data set above, we see that the vast majority of customers do not pay (we turned the `NA`'s into `0`'s by assumption), but the remaining customers pay a wide variety of differing amounts. In other words, we have a vast majority of zeroes and a small collection of non-zeroes that vary continuously.
+
+There are a few techniques that can handle imbalanced regression data directly, such as XGBoost and **synthetic minority over-sampling technique (SMOTE) regression**, but we devised a different approach. Rather than try to solve the open problem of imbalanced regression, why don't we run a classification algorithm that handles imbalanced classification and then regress on the minority class values (in this case, the small subset of paid customers)? This could potentially be more powerful than simply running imbalanced regression directly, but it comes at the cost of potentially increased complexity. It also relies on more choices because we need to pick two different models: one for classification and one for regression. The data rows that correspond to a predicted classification label of "paid" are fed into the regresser, so depending on how effective the classifier is, the regresser could compound those errors, making MSE values potentially inflated or otherwise unreliable. As such, it will be important to report on both the metrics for the classifiers and the metrics for the regressers simultaneously. This method also requires the training data to be split into "subtraining" data and a validation set; this is largely for assessing the performance of the classifier, but could also be used to assess the performance of the regresser too (as the original test data lacks publicly available revenue values, we cannot evaluate classification metrics on it). Once we have obtained a final regression model post-classification, we can then run *that* on the original test data, achieving a set of predictions for that data.
+
+All this being said, this project will be about comparing different **two-stage models**, as we are calling them here, that classify paid vs. non-paid customers and then run regression on the paid customers. The nice thing about two-stage models is that their pieces are customizable; any form of regression can be ran on any classifier, because the only inputs needed are whichever rows are preordained by the classifier as belonging to the "paid" subset. This makes them relatively easy to compare, as we can see which regresser works best with each classifier (and from there, determine the overall best model for this data set from all of our choices).
+
+For classification, we are using the following models:
+
+For regression, we are using the following models:
+
+Ideally, the end result of this project will be an "MSE/metrics table" of sorts where each row represents a classifier and each column represents a regresser (or vice versa). This will give us an easy visual indication of which model appears to work best for the data. For now, though, we move on to the challenges of preprocessing this particular data set.
+
+## Preprocessing
