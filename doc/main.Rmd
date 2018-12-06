@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 In this project, we will be investigating the issue of imbalanced regression in the Google Analytics customer revenue prediction data set available [here](https://www.kaggle.com/c/ga-customer-revenue-prediction) on Kaggle. In this Kaggle competition, entrants are challenged to predict customer revenue from customers who purchase items at the online Google Merchandise Store. This data set contains a host of explanatory variables, ranging from total pageviews to the time of accessing the site to the location of the customer (down to city or region if available), all for the purposes of predicting customer revenue (the response variable), available in the training data only. This may seem like a fairly pedestrian regression problem at first glance, but there is an interesting wrinkle that must be addressed; as you will see in the data, over 98% of the customers with recorded data do not spend money on anything in the store.
 
-The problem of **imbalanced _classification_** is well-known in data analysis. A naïve classifier using traditional methods will find that, in cases where the imbalance is especially strong (for example, a 90%-10% split between the majority and minority classes), it can just trivially assign every test point to the majority class and get a good accuracy score (in this case, with 90-10 split, the accuracy will be 90%, because every test point in the majority gets correctly predicted while every test point in the minority is incorrectly predicted). There are a host of ways to deal with imbalanced classification, some of which we tackle here.
+The problem of **imbalanced _classification_** is well-known in data analysis. A na?ve classifier using traditional methods will find that, in cases where the imbalance is especially strong (for example, a 90%-10% split between the majority and minority classes), it can just trivially assign every test point to the majority class and get a good accuracy score (in this case, with 90-10 split, the accuracy will be 90%, because every test point in the majority gets correctly predicted while every test point in the minority is incorrectly predicted). There are a host of ways to deal with imbalanced classification, some of which we tackle here.
 
 But the problem of **imbalanced _regression_** is actually a much more open problem. It seems hard to envision what an imbalanced regression problem might look like as imbalanced data sets seem to naturally imply categorization into classes. However, in the case of the Google Merchandise data set above, we see that the vast majority of customers do not pay (we turned the `NA`'s into `0`'s by assumption), but the remaining customers pay a wide variety of differing amounts. In other words, we have a vast majority of zeroes and a small collection of non-zeroes that vary continuously.
 
@@ -928,4 +928,10 @@ sqrt(mean((y_pred.mars-valid$revenue)^2))
 Ultimately, based on the results, we recommend the xgboost Tweedie Regression. We believe its relative simplicity will lead to more robust results vs the 2 step models which make more assumptions. 
 
 Possible next steps: As mentioned, the LDA+ LASSO/Ridge model requires further study. There still could be improvements done with a weighted LASSO/Ridge regression. (The regresser does not make use of misclassification rates on the training data by default)
+
+## Citations
+
+Zhou, He & Yang, Yi & Qian, Wei. (2018). *Tweedie Gradient Boosting for Extremely Unbalanced Zero-inflated Data*.
+
+Satwik Mishra (2017). *Handling Imbalanced Data: SMOTE vs. Random Undersampling*
 
