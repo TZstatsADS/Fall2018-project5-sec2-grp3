@@ -50,3 +50,15 @@ sqrt(mean(ptrain$revenue - pred.lassotrain)^2)
 # test error
 pred.lassotest <- predict(fit.lasso, pvalid.mat[, -1], s = bestlam)
 sqrt(mean(pvalid$revenue - pred.lassotest)^2)
+
+# linear LASSO regression #2 (lam.1se)
+fit.lasso2 <- glmnet(ptrain.mat[, -1], ptrain$revenue, alpha = 1, lambda = lam.1se)
+fit.lasso2$beta # coefficients
+# training error
+pred.lassotrain2 <- predict(fit.lasso, ptrain.mat[, -1], s = lam.1se) 
+sqrt(mean(ptrain$revenue - pred.lassotrain)^2)
+# test error
+pred.lassotest2 <- predict(fit.lasso, pvalid.mat[, -1], s = lam.1se)
+sqrt(mean(pvalid$revenue - pred.lassotest)^2)
+# the training and test errors are about the same, but this model has a much higher degree
+# of shrinkage (far more coefficients shrunk to zero)
