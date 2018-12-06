@@ -33,6 +33,7 @@ Ideally, the end result of this project will be an "MSE/metrics table" of sorts 
 Install required packages
 ```{r load libraries, warning=FALSE, message=FALSE, echo=FALSE}
 
+
 packages.used=c("glmnet", "ggplot2", "tidyverse", "pscl", "UBL", "ggraph", "igraph", "MASS", "lubridate", "e1071", "gridExtra", "penalizedLDA", "psych", "irr", "pROC", "caret", "zoo", "DMwR", "ROSE", "xgboost", "earth")
 
 # check packages that need to be installed.
@@ -69,7 +70,7 @@ library(earth)
 ```
 
 
-We reduce the train set to some chosen variables
+We reduce the train set to some key chosen variables
 ```{r}
 # Preprocessing
 #save(train, file = "./data/train.Rdata")
@@ -327,7 +328,7 @@ ggplot(data = as.data.frame(test.compare)) +
 
 ## One-Stage XGBoost Regression
 
-We attempt 2 models for xgboost regression: one based on the linear objective function and another based on the Tweedie Distribution objective function
+We attempt 2 models for xgboost regression: one based on the linear objective function and another based on the Tweedie Distribution objective function.
 
 ```{r}
 ## This is for the imbalanced regression problem. "One Step Model"
@@ -389,14 +390,14 @@ tweedie.rmse <- sqrt(mean((y_pred.tweedie-test$revenue)^2)); tweedie.rmse
 At 1.68, the RMSE for the Tweedie distribution is slightly lower than linear regression.
 
 
-Additionally, the team attempted classification by penalized logistic regression, however, the model did not converge for the ideal lambda and this was ultimately unused for our two step models. The code can be found in the 'doc' folder.
+Additionally, the team attempted classification by penalized logistic regression, however, the model did not converge for the ideal lambda, and this was ultimately unused for our two step models. The code can be found in the 'doc' folder.
 
 
 ## Two-Stage Models
 
 #Two Step Model: Penalized LDA + LASSO /Ridge
 
-Penalized LDA puts a penalty on classification mistakes made on the minority class and Lasso
+Penalized LDA puts a penalty on classification mistakes made on the minority class. We use LASSO and Ridge to strengthen the results of our prediction and avoid overfitting.
 ```{r}
 # for classification performance metrics, see penalized_LDA_classification_skolins.R
 
@@ -582,8 +583,7 @@ ggplot(data = finalpreds) +
 # but technically, it has a better MSE than XGBoost + Tweedie!
 ```
 
-#Boosted Trees SMOTE + xgBoost 
-#Boosted Trees SMOTE + Splines
+##Model 2: #Boosted Trees SMOTE + xgBoost / Splines
 
 The team attempted multiple classification tree models. First was a normal classification tree, then ROSE and SMOTE. These latter two models down sample the majority class (in this case, those who make no purchase) and create new minority class data points.
 ```{r}
