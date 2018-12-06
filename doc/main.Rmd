@@ -23,8 +23,22 @@ There are a few techniques that can handle imbalanced regression data directly, 
 All this being said, this project will be about comparing different **two-stage models**, as we are calling them here, that classify paid vs. non-paid customers and then run regression on the paid customers. The nice thing about two-stage models is that their pieces are customizable; any form of regression can be ran on any classifier, because the only inputs needed are whichever rows are preordained by the classifier as belonging to the "paid" subset. This makes them relatively easy to compare, as we can see which regresser works best with each classifier (and from there, determine the overall best model for this data set from all of our choices).
 
 For classification, we are using the following models:
+1. Decision Trees - normal, ROSE, SMOTE
+2. Boosted Decsision Trees - normal, ROSE, SMOTE
+3. Penalized LDA
+4. Penalized Logistic Regression (not used in the end)
 
 For regression, we are using the following models:
+1. xgboost linear regression
+2. xgboost tweedie regression
+3. LASSO Regression
+4. Ridge Regression
+5. Regression Splines
+
+We ultimately used the following 2-step models:
+1. Penalized LDA + LASSO Regression
+2. Boosted Trees SMOTE + Regression Splines
+3. Boosted Trees SMOTE + xgboost
 
 Ideally, the end result of this project will be an "MSE/metrics table" of sorts where each row represents a classifier and each column represents a regresser (or vice versa). This will give us an easy visual indication of which model appears to work best for the data. For now, though, we move on to the challenges of preprocessing this particular data set.
 
