@@ -133,3 +133,21 @@ ggplot(data = as.data.frame(test.compare)) +
 
 # matrix of unpaid predicted customers (UPPC's)
 uppc <- test[-index.ppc, ]
+
+# vectors of final predictions
+# this is a bit tricky because we actually have three groups:
+# 1. points classified as "unpaid"
+# 2. points classified as "paid" but used in the training set
+# 3. points classified as "paid" but used in the test set
+# we will first create a vector that indicates which of the above groups each point is in
+# they are numbered in the order they are listed above
+unpaid.nums <- which(penlda$ypred == 1)
+paid.nums <- which(penlda$ypred == 2)
+paid.nums.train <- paid.nums[samp2]
+paid.nums.test <- paid.nums[-samp2]
+# the actual group assignment vector now
+groups <- rep(0, nrow(test))
+groups[unpaid.nums] <- 1
+groups[paid.nums.train] <- 2
+groups[paid.nums.test] <- 3
+groups
