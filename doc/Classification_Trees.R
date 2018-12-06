@@ -8,11 +8,13 @@ library(zoo)
 library(DMwR)
 library(rpart)
 
+load("./output/oldcleaned.Rdata")
+
 # Splitting the data into training and test
 set.seed(100)
-samp <- sample(nrow(dat), 0.7*nrow(dat), replace = FALSE)
-train <- dat[samp,]
-test <- dat[-samp,]
+samp <- sample(nrow(newdat), 0.7*nrow(newdat), replace = FALSE)
+train <- newdat[samp,]
+test <- newdat[-samp,]
 
 # Fitting the model
 set.seed(100)
@@ -41,7 +43,7 @@ f1 <- 2*(rec*prec)/(rec+prec); f1
 
 # 2) ROSEd classification tree
 
-#Final ROSEd dataset
+#Final ROSEd newdataset
 rose_train <- ROSE(is.paid ~ ., data  = data.frame(train))$data
 
 # Fitting the model
@@ -72,7 +74,7 @@ rose.f1 <- 2*(rose.rec*rose.prec)/(rose.rec+rose.prec); rose.f1
 
 # 3) SMOTEd classification tree
 
-#Final SMOTEd dataset
+#Final SMOTEd newdataset
 smote_train <- SMOTE(is.paid ~ ., data  = data.frame(train))
 
 # Fitting the model
@@ -108,6 +110,6 @@ eval.sum <- data.frame(method = c("Normal","ROSE","SMOTE"),
                        recall = c(rec,rose.rec,smote.rec),
                        f1score = c(f1,rose.f1,smote.f1))
 
-save(eval.sum, file = "./data/cltree-eval.Rdata")
+#save(eval.sum, file = "./newdata/cltree-eval.Rdata")
 
 

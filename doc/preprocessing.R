@@ -17,7 +17,6 @@ options(scipen = 999)
 # Preprocessing
 dat <- train %>% 
   transmute(revenue = ifelse(is.na(log(totals.transactionRevenue)) == T, 0, log(totals.transactionRevenue)),
-            is.paid = factor(ifelse(revenue > 0, 1, 0)),
             browser = factor(case_when(device.browser == "Chrome" ~ "chrome",
                                 device.browser %in% c("Safari", "Safari (in-app)") ~ "safari",
                                 device.browser == "Firefox" ~ "firefox",
@@ -56,7 +55,48 @@ dat <- train %>%
             day = factor(weekdays(as_datetime(train$visitStartTime))))
 
 
-save(dat, file = "./data/cleaned.Rdata")
+newdat <- train %>% 
+  transmute(revenue = ifelse(is.na(log(totals.transactionRevenue)) == T, 0, log(totals.transactionRevenue)),
+            is.paid = factor(ifelse(revenue > 0, 1, 0)),
+            browser = factor(case_when(device.browser == "Chrome" ~ "chrome",
+                                       device.browser %in% c("Safari", "Safari (in-app)") ~ "safari",
+                                       device.browser == "Firefox" ~ "firefox",
+                                       device.browser %in% c("Edge", "Internet Explorer") ~ "edge",
+                                       device.browser %in% c("Opera", "Opera Mini") ~ "opera",
+                                       TRUE ~ "other")),
+            os = factor(case_when(device.operatingSystem == "Windows" ~ "windows",
+                                  device.operatingSystem == "Mackintosh" ~ "mackintosh",
+                                  device.operatingSystem == "Android" ~ "android",
+                                  device.operatingSystem == "iOS" ~ "ios",
+                                  device.operatingSystem  == "Linux" ~ "linux",
+                                  device.operatingSystem  == "ChromeOS" ~ "chromeos",
+                                  is.na(device.operatingSystem) == T ~ "unknown",
+                                  TRUE ~ "other")),
+            device = factor(device.deviceCategory),
+            continent = factor(ifelse(is.na(geoNetwork.continent) == T, "unknown", geoNetwork.continent)),
+            pageviews = ifelse(is.na(totals.pageviews) == T, 0, totals.pageviews),
+            bounces = ifelse(is.na(totals.bounces) == T, 0, totals.bounces),
+            medium = factor(ifelse(is.na(trafficSource.medium) == T, "unknown", trafficSource.medium)),
+            campaign = factor(ifelse(is.na(trafficSource.campaign) == T, 0, 1)),
+            #keyword = trafficSource.keyword,
+            channel = factor(channelGrouping),
+            #visitor = fullVisitorId,
+            source = factor(case_when(trafficSource.source %in% train[grep("google", trafficSource.source),]$trafficSource.source ~ "google",
+                                      trafficSource.source %in% train[grep("(direct)", trafficSource.source),]$trafficSource.source ~ "direct",
+                                      trafficSource.source %in% train[grep("facebook", trafficSource.source),]$trafficSource.source ~ "facebook",
+                                      trafficSource.source %in% train[grep("android", trafficSource.source),]$trafficSource.source ~ "android",
+                                      trafficSource.source %in% train[grep("bing", trafficSource.source),]$trafficSource.source ~ "bing",
+                                      trafficSource.source %in% train[grep("baidu", trafficSource.source),]$trafficSource.source ~ "baidu",
+                                      trafficSource.source %in% train[grep("yahoo", trafficSource.source),]$trafficSource.source ~ "yahoo",
+                                      trafficSource.source %in% train[grep("Partners", trafficSource.source),]$trafficSource.source ~ "partners",
+                                      trafficSource.source %in% train[grep("ask", trafficSource.source),]$trafficSource.source ~ "ask",
+                                      TRUE ~ "other")),
+            hour = hour(as_datetime(train$visitStartTime)),
+            month = month(as_datetime(train$visitStartTime)),
+            day = factor(weekdays(as_datetime(train$visitStartTime))))
+
+#save(dat, file = "./data/cleaned.Rdata")
+#save(newdat, file = "./data/oldcleaned.Rdata")
 
 # Paying Customers
 paid <- dat %>% filter(revenue > 0)
