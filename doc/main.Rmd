@@ -597,12 +597,16 @@ ggplot(data = finalpreds) +
 # there's a lot of room for improvement in these models for sure
 # but technically, it has a better MSE than XGBoost + Tweedie!
 ```
+The results of the penalized LDA+ LASSO/Ridge appears somewhat peculiar, with the exact same RMSE produced for training and test as well as LASSO/Ridge. Thus, we recommend further study regarding this approach.
+
 
 
 ##Model 2: #Boosted Trees SMOTE + xgBoost / Splines
 
 #Not boosted trees
 The team attempted multiple classification tree models. First was a normal classification tree, then ROSE and SMOTE. These latter two models down sample the majority class (in this case, those who make no purchase) and create new minority class data points.
+
+Note that when applying the oversampling techniques like SMOTE, splitting into training and test set must occur before the SMOTE-ing. The model will then be trained on a SMOTE-d training set and later applied to a non oversampled test set.
 ```{r}
 # Different Classfication Tree Models to run for Step 1
 
@@ -920,4 +924,8 @@ sqrt(mean((y_pred.mars-valid$revenue)^2))
 ```
 
 ## Conclusion
+
+Ultimately, based on the results, we recommend the xgboost Tweedie Regression. We believe its relative simplicity will lead to more robust results vs the 2 step models which make more assumptions. 
+
+Possible next steps: As mentioned, the LDA+ LASSO/Ridge model requires further study. There still could be improvements done with a weighted LASSO/Ridge regression. (The regresser does not make use of misclassification rates on the training data by default)
 
