@@ -62,3 +62,20 @@ pred.lassotest2 <- predict(fit.lasso, pvalid.mat[, -1], s = lam.1se)
 sqrt(mean(pvalid$revenue - pred.lassotest)^2)
 # the training and test errors are about the same, but this model has a much higher degree
 # of shrinkage (far more coefficients shrunk to zero)
+# that might just be due to the specific seed I used though
+
+# linear Ridge cross-validation
+cv.ridge <- cv.glmnet(ptrain.mat[, -1], ptrain$revenue, alpha = 0)
+plot(cv.ridge)
+bestlam2 <- cv.ridge$lambda.min
+lam2.1se <- cv.ridge$lambda.1se
+
+# linear Ridge regression #1 (bestlam2)
+fit.ridge <- glmnet(ptrain.mat[, -1], ptrain$revenue, alpha = 0, lambda = bestlam2)
+fit.ridge$beta # coefficients
+# training error
+pred.ridgetrain <- predict(fit.ridge, ptrain.mat[, -1], s = bestlam2) 
+sqrt(mean(ptrain$revenue - pred.ridgetrain)^2)
+# test error
+pred.ridgetest <- predict(fit.ridge, pvalid.mat[, -1], s = bestlam2)
+sqrt(mean(pvalid$revenue - pred.ridgetest)^2)
