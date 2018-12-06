@@ -3,6 +3,7 @@
 library(xgboost)
 library(DMwR)
 library(earth)
+library(zoo)
 
 #Boosted Classification Trees (After SMOTE sampling for imbalance correction) + Xgboost (1) + MARS (2)
 
@@ -30,9 +31,11 @@ smote.xgb.pred <- predict(smote.xgbtree, newdata = test[,-1])
 
 # Create a new set for the regression
 newset <- cbind(test,smote.xgb.pred)
+newset$id <- index(newset)
 
 # Only care about the paid classified users
 paidset <- newset[newset$smote.xgb.pred == 1,][,-c(2,16)]
+freeset <- newset[newset$smote.xgb.pred == 0,][,-c(2,16)]
 
 #Step 2: Fitting the regression models
 
@@ -45,8 +48,8 @@ summary(training)
 summary(valid)
 
 # Create a model matrix
-mod <- model.matrix(revenue ~ ., data = training)
-modte <- model.matrix(revenue ~ ., data = valid)
+mod <- model.matrix(revenue ~ ., data = training[,-17])
+modte <- model.matrix(revenue ~ ., data = valid[,-17])
 
 # The Step 2 (Model 1 - XgBoost)
 xgb.final <- xgboost(data = mod, 
@@ -73,3 +76,15 @@ mars <- earth(revenue~., data = training, degree = 3)
 y_pred.mars <- predict(mars, newdata = valid)
 
 sqrt(mean((y_pred.mars-valid$revenue)^2))
+
+
+#We need to calculate the final mse which includes the following
+finalpred <- rbind(training, valid, freeset)
+sqrt(mean((test[-training$id,]$revenue-finalpred[-training$id,]$revenue)^2))
+# vectors of final predictions
+# this is a bit tricky because we actually have three groups:
+# 1. points classified as "unpaid"
+# 2. points classified as "paid" but used in the training set
+# 3. points classified as "paid" but used in the test set
+# we will first create a vector that indicates which of the above groups each point is in
+# they are numbered in the order they are listed above
