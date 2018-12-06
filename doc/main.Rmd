@@ -6,6 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
+chooseCRANmirror(graphics=FALSE, ind=1)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -29,10 +30,262 @@ Ideally, the end result of this project will be an "MSE/metrics table" of sorts 
 
 ## Preprocessing
 
+Install required packages
+```{r load libraries, warning=FALSE, message=FALSE, echo=FALSE}
+
+packages.used=c("glmnet", "ggplot2", "tidyverse", "pscl", "UBL", "ggraph", "igraph", "MASS", "lubridate", "e1071", "gridExtra")
+
+# check packages that need to be installed.
+packages.needed=setdiff(packages.used, 
+                        intersect(installed.packages()[,1], 
+                                  packages.used))
+# install additional packages
+if(length(packages.needed)>0){
+  install.packages(packages.needed, dependencies = TRUE)
+}
+
+library(glmnet)
+library(ggplot2)
+library(tidyverse)
+library(pscl)
+library(UBL)
+library(ggraph)
+library(igraph)
+library(MASS)
+library(lubridate)
+library(e1071)
+library(gridExtra)
+```
+
+
+We reduce the train set to some chosen variables
+```{r}
+# Preprocessing
+dat <- train %>% 
+  transmute(revenue = ifelse(is.na(log(totals.transactionRevenue)) == T, 0, log(totals.transactionRevenue)),
+            is.paid = factor(ifelse(revenue > 0, 1, 0)),
+            browser = factor(case_when(device.browser == "Chrome" ~ "chrome",
+                                device.browser %in% c("Safari", "Safari (in-app)") ~ "safari",
+                                device.browser == "Firefox" ~ "firefox",
+                                device.browser %in% c("Edge", "Internet Explorer") ~ "edge",
+                                device.browser %in% c("Opera", "Opera Mini") ~ "opera",
+                                TRUE ~ "other")),
+            os = factor(case_when(device.operatingSystem == "Windows" ~ "windows",
+                           device.operatingSystem == "Mackintosh" ~ "mackintosh",
+                           device.operatingSystem == "Android" ~ "android",
+                           device.operatingSystem == "iOS" ~ "ios",
+                           device.operatingSystem  == "Linux" ~ "linux",
+                           device.operatingSystem  == "ChromeOS" ~ "chromeos",
+                           is.na(device.operatingSystem) == T ~ "unknown",
+                           TRUE ~ "other")),
+            device = factor(device.deviceCategory),
+            continent = factor(ifelse(is.na(geoNetwork.continent) == T, "unknown", geoNetwork.continent)),
+            pageviews = ifelse(is.na(totals.pageviews) == T, 0, totals.pageviews),
+            bounces = ifelse(is.na(totals.bounces) == T, 0, totals.bounces),
+            medium = factor(ifelse(is.na(trafficSource.medium) == T, "unknown", trafficSource.medium)),
+            campaign = factor(ifelse(is.na(trafficSource.campaign) == T, 0, 1)),
+            #keyword = trafficSource.keyword,
+            channel = factor(channelGrouping),
+            #visitor = fullVisitorId,
+            source = factor(case_when(trafficSource.source %in% train[grep("google", trafficSource.source),]$trafficSource.source ~ "google",
+                               trafficSource.source %in% train[grep("(direct)", trafficSource.source),]$trafficSource.source ~ "direct",
+                               trafficSource.source %in% train[grep("facebook", trafficSource.source),]$trafficSource.source ~ "facebook",
+                               trafficSource.source %in% train[grep("android", trafficSource.source),]$trafficSource.source ~ "android",
+                               trafficSource.source %in% train[grep("bing", trafficSource.source),]$trafficSource.source ~ "bing",
+                               trafficSource.source %in% train[grep("baidu", trafficSource.source),]$trafficSource.source ~ "baidu",
+                               trafficSource.source %in% train[grep("yahoo", trafficSource.source),]$trafficSource.source ~ "yahoo",
+                               trafficSource.source %in% train[grep("Partners", trafficSource.source),]$trafficSource.source ~ "partners",
+                               trafficSource.source %in% train[grep("ask", trafficSource.source),]$trafficSource.source ~ "ask",
+                               TRUE ~ "other")),
+            hour = hour(as_datetime(train$visitStartTime)),
+            month = month(as_datetime(train$visitStartTime)),
+            day = factor(weekdays(as_datetime(train$visitStartTime))))
+
+
+save(dat, file = "./data/cleaned.Rdata")
+
+# Paying Customers
+paid <- dat %>% filter(revenue > 0)
+
+# Non-paying Customers
+free <- dat %>% filter(revenue == 0)
+
+```
+
+##EDA
+```{r}
+# Average Pageviews per user for each device (Paid vs Free)
+
+aggregate(pageviews~device, data = paid, mean)
+aggregate(pageviews~device, data = free, mean)
+
+a <- ggplot(aggregate(pageviews~device, data = paid, mean), aes(device, pageviews)) +
+  geom_bar(stat = "identity") + labs(title = "Pageviews per user per device (Paid)")
+b <- ggplot(aggregate(pageviews~device, data = free, mean), aes(device, pageviews)) +
+  geom_bar(stat = "identity") + labs(title = "Pageviews per user per device (Free)")
+grid.arrange(a,b, ncol = 2)
+
+
+# Busiest month of the year (Paid vs Free)
+
+aggregate(pageviews~month, data = paid, mean) # August: busiest; May: least busy
+aggregate(pageviews~month, data = free, mean) # August: busiest; Nov: least busy
+
+a <- ggplot(aggregate(pageviews~month, data = paid, mean), aes(factor(month), pageviews)) +
+  geom_bar(stat = "identity") + labs(title = "Pageviews per user per month (Paid)")
+b <- ggplot(aggregate(pageviews~month, data = free, mean), aes(factor(month), pageviews)) +
+  geom_bar(stat = "identity") + labs(title = "Pageviews per user per month (Free)")
+grid.arrange(a,b, ncol = 2)
+
+# Busiest weekday (Paid vs Free)
+
+aggregate(pageviews~day, data = paid, mean) 
+aggregate(pageviews~day, data = free, mean) 
+
+a <- ggplot(aggregate(pageviews~day, data = paid, mean), aes(day, pageviews)) +
+  geom_bar(stat = "identity") + labs(title = "Pageviews per user per day of the week (Paid)")
+b <- ggplot(aggregate(pageviews~day, data = free, mean), aes(day, pageviews)) +
+  geom_bar(stat = "identity") + labs(title = "Pageviews per user per day of the week (Free)")
+grid.arrange(a,b, ncol = 2)
+
+
+# Busiest Hour (Paid vs Free)
+
+aggregate(pageviews~hour, data = paid, mean) 
+aggregate(pageviews~hour, data = free, mean) 
+
+a <- ggplot(aggregate(pageviews~hour, data = paid, mean), aes(factor(hour), pageviews)) +
+  geom_bar(stat = "identity") + labs(title = "Pageviews per user per hour of day (Paid)")
+b <- ggplot(aggregate(pageviews~hour, data = free, mean), aes(factor(hour), pageviews)) +
+  geom_bar(stat = "identity") + labs(title = "Pageviews per user per hour of day (Free)")
+grid.arrange(a,b, ncol = 2)
+
+
+# Median revenue earned per device
+
+aggregate(revenue~device, data = paid, median)
+
+# Median revenue earned per month
+
+aggregate(revenue~month, data = paid, median)
+
+# Median revenue earned per day of the week
+
+aggregate(revenue~day, data = paid, median)
+
+# Median revenue earned per hour of day
+
+aggregate(revenue~hour, data = paid, median)
+
+
+# Plots
+
+# Looking at the distribution of hits by channel for paying customers vs free customers
+
+ggplot(dat, aes(channel,pageviews,fill = channel)) + 
+  geom_bar(stat = "identity") +
+  facet_wrap(~ifelse(!is.na(revenue) == T, "Paid", "Free"), scales = "free") +
+  ggtitle("Pageviews by channel") +
+  coord_flip() +
+  theme(axis.text.x=element_text(angle = -45, hjust = 0))
+
+# Looking at the distribution of hits by device for paying customers vs free customers
+
+ggplot(dat, aes(device,pageviews,fill = device)) + 
+  geom_bar(stat = "identity") +
+  facet_wrap(~ifelse(!is.na(revenue) == T, "Paid", "Free"), scales = "free") +
+  ggtitle("Pageviews by Device") +
+  coord_flip() +
+  theme(axis.text.x=element_text(angle = -45, hjust = 0))
+```
+
+
 ## One-Stage LASSO Regression
+
+```{r}
+# loading preprocessed data
+load("./output/cleaned.Rdata")
+# saved as "dat"
+# revenue is log revenue of the original data set
+
+# creating a test set from "dat" (which is all training data of the original data set)
+set.seed(100)
+samp <- sample(nrow(dat), 0.7 * nrow(dat), replace = FALSE)
+train <- dat[samp, ]
+test <- dat[-samp, ]
+summary(train)
+summary(test)
+
+# creating model matrix from training data
+train.mat <- model.matrix(revenue ~ ., data = train)
+
+# creating y variable
+logrev.train <- train$revenue
+```
+
+Running LASSO regression with the optimal lambda
+```{r}
+# running ElasticNet/LASSO regression (alpha = 1)
+fit1 <- cv.glmnet(train.mat, logrev.train, alpha = 1)
+fit1
+plot(fit1)
+opt.lambda <- fit1$lambda.min
+
+# running LASSO with optimal lambda
+fit1.opt <- glmnet(train.mat[, -1], logrev.train, family = "gaussian", alpha = 1, lambda = opt.lambda)
+plot(glmnet(train.mat[, -1], logrev.train, family = "gaussian", alpha = 1), xvar = "lambda", label = TRUE)
+# here are the coefficients. many of them have been shrunk to zero, but almost all of them are
+# low anyway (< 10^-1, many < 10^-2)
+coeffs <- fit1.opt$beta
+coeffs
+plot(coef(fit1.opt, s = opt.lambda)) # coeff plot
+# only 17% of the deviance is explained by this model
+fit1.opt$dev.ratio
+```
+
+The MSE for both training and test set appear very low
+```{r}
+pred1.train <- predict(fit1.opt, train.mat[, -1], s = opt.lambda)
+sqrt(mean(logrev.train - pred1.train)^2) 
+# training error (root MSE) is extremely low!
+# overfitting is likely occurring
+
+test.mat <- model.matrix(revenue ~ ., data = test)
+pred1.test <- predict(fit1.opt, s = opt.lambda, newx = test.mat[, -1], type = "response")
+logrev.test <- test$revenue
+sqrt(mean(logrev.test - pred1.test)^2) # test error (root MSE) really low???
+```
+
+
+```{r}
+# let's visually see if the test predictions are actually good
+# the following is a matrix that stores the ID's of the data points, the true log revenue,
+# and the predicted log revenue
+test.compare <- cbind(logrev.test, pred1.test)
+indices <- rownames(test.compare)
+test.compare <- cbind(as.numeric(indices), test.compare)
+colnames(test.compare) <- c("ID", "True", "Predicted")
+rownames(test.compare) <- NULL
+head(test.compare)
+
+ggplot(data = as.data.frame(test.compare)) + 
+  geom_point(mapping = aes(x = ID, y = Predicted, color = "Predicted"), alpha = 0.3) +
+  geom_point(mapping = aes(x = ID, y = True, color = "True"), alpha = 0.3) +
+  ylab("Log Revenue") + scale_color_manual("Legend", 
+                                           breaks = c("Predicted", "True"),
+                                           values = c("red", "blue"))
+```
+
 
 ## One-Stage XGBoost Regression
 
+```{r}
+
+```
+
+
 ## Two-Stage Models
+
+
 
 ## Conclusion
