@@ -10,18 +10,24 @@ Term: Fall 2018
 	+ Sam Kolins
 	+ Sarah Wu
 	+ Wenting Yu
-+ Project summary: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
++ Project summary: We investigate different methods to accurately predict revenue for a Google Webstore client. The catch here is that the revenue is very sparse or in other words, we're faced with an Imbalanced regression problem. We attempt a two pronged approach: A one step model approach - where we use just one model to solve the problem; A two step model approach - where we first classify into users who pay and those who don't and run the regression based on what our classification model does. We implement a range of models based on a lot of discussions and thought.
 	
-**Contribution statement**: ([default](doc/a_note_on_contributions.md)) All team members contributed equally in all stages of this project. All team members approve our work presented in this GitHub repository including this contributions statement. 
+**Contribution statement**: 
++ Team members
+	+ Atishay Sehgal: Cleaned, Preprocessed and Structured the data. Did the Exploratory Analysis. Created the following models: One Step Xgboost, One Step Xgboost + Tweedie, Two step models: 6 classification models - 3 classification trees (unsampled, ROSE sampled and SMOTE sampled) and 3 boosted classification trees (unsampled, ROSE sampled and SMOTE sampled). Two step models: 2 regression models - xgboost and multivariate adaptive regression splines. Contributed in some way to all processes.
+	+ Deepika S Namboothiri: Research on attribution model, crossvalidated xgboost and presentation.
+	+ Sam Kolins: Worked on the following models: one-stage LASSO, LASSO/Ridge on all paid data, penalized LDA, two-stage penalized LDA+LASSO/Ridge, and wrote the main.Rmd introduction.
+	+ Sarah Wu: Wrote the entire report for our project.
+	+ Wenting Yu:  
 
 Following [suggestions](http://nicercode.github.io/blog/2013-04-05-projects/) by [RICH FITZJOHN](http://nicercode.github.io/about/#Team) (@richfitz). This folder is orgarnized as follows.
 
 ```
 proj/
-├── lib/
 ├── data/
 ├── doc/
 ├── figs/
+├── lib/
 └── output/
 ```
 
