@@ -42,13 +42,12 @@ plot(coef(fit1.opt, s = opt.lambda)) # coeff plot
 fit1.opt$dev.ratio
 
 pred1.train <- predict(fit1.opt, train.mat[, -1], s = opt.lambda)
-sqrt(mean(logrev.train - pred1.train)^2) # training error (root MSE) is extremely low!
-# overfitting is likely occurring
+sqrt(mean((logrev.train - pred1.train)^2)) # training error = 1.8153
 
 test.mat <- model.matrix(revenue ~ ., data = test)
 pred1.test <- predict(fit1.opt, s = opt.lambda, newx = test.mat[, -1], type = "response")
 logrev.test <- test$revenue
-sqrt(mean(logrev.test - pred1.test)^2) # test error (root MSE) really low???
+sqrt(mean((logrev.test - pred1.test)^2)) # test error = 1.8298
 
 # let's visually see if the test predictions are actually good
 # the following is a matrix that stores the ID's of the data points, the true log revenue,
