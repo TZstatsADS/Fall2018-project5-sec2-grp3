@@ -93,8 +93,8 @@ pred.ridgetest2 <- predict(fit.ridge, pvalid.mat[, -1], s = lam2.1se)
 sqrt(mean((pvalid$revenue - pred.ridgetest2)^2))
 
 # can we get a visual sense for how accurate our predictions are?
-IDs <- rownames(test.compare)
 test.compare <- cbind(as.numeric(IDs), pvalid$revenue, pred.lassotest, pred.ridgetest)
+IDs <- rownames(test.compare)
 colnames(test.compare) <- c("ID", "True", "LASSO", "Ridge")
 # LASSO plot
 ggplot(data = as.data.frame(test.compare)) + 

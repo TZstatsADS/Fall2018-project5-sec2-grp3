@@ -4,7 +4,7 @@ library(caret)
 library(xgboost)
 
 # XgBoost (Linear Regression followed by Tweedie Regression)
-load("./output/cleaned.Rdata")
+load("./data/cleaned.Rdata")
 
 # Splitting the data into training and test
 set.seed(100)

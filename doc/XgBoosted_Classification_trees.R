@@ -9,6 +9,8 @@ library(DMwR)
 library(ROSE)
 library(xgboost)
 
+load("./data/oldcleaned.Rdata")
+
 # Splitting the data into training and test
 set.seed(100)
 samp <- sample(nrow(newdat), 0.7*nrow(newdat), replace = FALSE)
