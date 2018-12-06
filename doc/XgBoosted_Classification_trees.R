@@ -9,7 +9,7 @@ library(DMwR)
 library(ROSE)
 library(xgboost)
 
-load("./output/oldcleaned.Rdata")
+load("./data/oldcleaned.Rdata")
 
 # Splitting the data into training and test
 set.seed(100)
