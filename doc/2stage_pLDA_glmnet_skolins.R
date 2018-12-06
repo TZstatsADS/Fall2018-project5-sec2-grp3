@@ -151,3 +151,45 @@ groups[unpaid.nums] <- 1
 groups[paid.nums.train] <- 2
 groups[paid.nums.test] <- 3
 groups
+# of course, paid training set data isn't regressed at all, so that can be dropped
+regressed <- which(groups != 2)
+length(regressed) # the TRUE number of predictions made
+
+# final predictions matrix
+finalpreds <- cbind(1:nrow(test), groups)
+finalpred.lasso <- rep(0, nrow(finalpreds))
+finalpred.lasso[groups == 3] <- pred.lassotest
+finalpred.lasso[groups == 2] <- NA
+finalpred.ridge <- rep(0, nrow(finalpreds))
+finalpred.ridge[groups == 3] <- pred.ridgetest
+finalpred.ridge[groups == 2] <- NA
+finalpreds <- cbind(finalpreds, finalpred.lasso, finalpred.ridge)
+finalpreds <- cbind(finalpreds, test$revenue)
+colnames(finalpreds) <- c("ID", "Group", "pLDA.LASSO", "pLDA.Ridge", "True")
+finalpreds <- as.data.frame(finalpreds)
+finalpreds <- finalpreds[groups != 2, ]
+rownames(finalpreds) <- 1:nrow(finalpreds)
+
+# before we plot, let's compute the TRUE MSE
+final.lasso.mse <- sqrt(mean((finalpreds$True - finalpreds$pLDA.LASSO)^2))
+final.ridge.mse <- sqrt(mean((finalpreds$True - finalpreds$pLDA.Ridge)^2))
+# !!!!! incredible! both MSE's are around 1.342!
+
+# but now, let's look at the plots
+# LASSO plot
+ggplot(data = finalpreds) + 
+  geom_point(mapping = aes(x = ID, y = pLDA.LASSO, color = "pLDA+LASSO"), alpha = 0.3) +
+  geom_point(mapping = aes(x = ID, y = True, color = "True"), alpha = 0.3) +
+  ylab("Log Revenue") + ggtitle("Final pLDA+LASSO Predictions vs. True Revenues") +
+  scale_color_manual("Legend", breaks = c("pLDA+LASSO", "True"), values = c("red", "blue"))
+# Ridge plot
+ggplot(data = finalpreds) + 
+  geom_point(mapping = aes(x = ID, y = pLDA.Ridge, color = "pLDA+Ridge"), alpha = 0.3) +
+  geom_point(mapping = aes(x = ID, y = True, color = "True"), alpha = 0.3) +
+  ylab("Log Revenue") + ggtitle("Final pLDA+Ridge Predictions vs. True Revenues") +
+  scale_color_manual("Legend", breaks = c("pLDA+Ridge", "True"), values = c("red", "blue"))
+# sadly, the plots are still terrible
+# but most of the red points are hiding behind the big blue line at 0
+# also, both Ridge and LASSO sometimes predict negative values for log revenue?!
+# there's a lot of room for improvement in these models for sure
+# but technically, it has a better MSE than XGBoost + Tweedie!
