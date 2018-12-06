@@ -8,7 +8,9 @@
 # this is just an analysis of how well each algorithm does in a BEST-CASE SCENARIO
 
 # install.packages("glmnet")
+# install.packages("ggplot2")
 library(glmnet)
+library(ggplot2)
 
 # loading preprocessed data
 load("./output/cleaned.Rdata")
@@ -89,3 +91,22 @@ sqrt(mean((ptrain$revenue - pred.ridgetrain2)^2))
 # test error
 pred.ridgetest2 <- predict(fit.ridge, pvalid.mat[, -1], s = lam2.1se)
 sqrt(mean((pvalid$revenue - pred.ridgetest2)^2))
+
+# can we get a visual sense for how accurate our predictions are?
+IDs <- rownames(test.compare)
+test.compare <- cbind(as.numeric(IDs), pvalid$revenue, pred.lassotest, pred.ridgetest)
+colnames(test.compare) <- c("ID", "True", "LASSO", "Ridge")
+# LASSO plot
+ggplot(data = as.data.frame(test.compare)) + 
+  geom_point(mapping = aes(x = ID, y = LASSO, color = "LASSO"), alpha = 0.3) +
+  geom_point(mapping = aes(x = ID, y = True, color = "True"), alpha = 0.3) +
+  ylab("Log Revenue") + ggtitle("LASSO Predictions vs. True Revenues") +
+  scale_color_manual("Legend", breaks = c("LASSO", "True"), values = c("red", "blue"))
+# Ridge plot
+ggplot(data = as.data.frame(test.compare)) + 
+  geom_point(mapping = aes(x = ID, y = Ridge, color = "Ridge"), alpha = 0.3) +
+  geom_point(mapping = aes(x = ID, y = True, color = "True"), alpha = 0.3) +
+  ylab("Log Revenue") + ggtitle("Ridge Predictions vs. True Revenues") +
+  scale_color_manual("Legend", breaks = c("Ridge", "True"), values = c("red", "blue"))
+# the plots depict a worse fit than the MSE's suggest
+# but numerically, it's not much worse than XGBoost or splines...
