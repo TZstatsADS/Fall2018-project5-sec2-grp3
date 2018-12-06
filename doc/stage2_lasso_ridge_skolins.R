@@ -46,20 +46,20 @@ fit.lasso <- glmnet(ptrain.mat[, -1], ptrain$revenue, alpha = 1, lambda = bestla
 fit.lasso$beta # coefficients
 # training error
 pred.lassotrain <- predict(fit.lasso, ptrain.mat[, -1], s = bestlam) 
-sqrt(mean(ptrain$revenue - pred.lassotrain)^2)
+sqrt(mean((ptrain$revenue - pred.lassotrain)^2))
 # test error
 pred.lassotest <- predict(fit.lasso, pvalid.mat[, -1], s = bestlam)
-sqrt(mean(pvalid$revenue - pred.lassotest)^2)
+sqrt(mean((pvalid$revenue - pred.lassotest)^2))
 
 # linear LASSO regression #2 (lam.1se)
 fit.lasso2 <- glmnet(ptrain.mat[, -1], ptrain$revenue, alpha = 1, lambda = lam.1se)
 fit.lasso2$beta # coefficients
 # training error
 pred.lassotrain2 <- predict(fit.lasso, ptrain.mat[, -1], s = lam.1se) 
-sqrt(mean(ptrain$revenue - pred.lassotrain)^2)
+sqrt(mean((ptrain$revenue - pred.lassotrain)^2))
 # test error
 pred.lassotest2 <- predict(fit.lasso, pvalid.mat[, -1], s = lam.1se)
-sqrt(mean(pvalid$revenue - pred.lassotest)^2)
+sqrt(mean((pvalid$revenue - pred.lassotest)^2))
 # the training and test errors are about the same, but this model has a much higher degree
 # of shrinkage (far more coefficients shrunk to zero)
 # that might just be due to the specific seed I used though
@@ -75,7 +75,17 @@ fit.ridge <- glmnet(ptrain.mat[, -1], ptrain$revenue, alpha = 0, lambda = bestla
 fit.ridge$beta # coefficients
 # training error
 pred.ridgetrain <- predict(fit.ridge, ptrain.mat[, -1], s = bestlam2) 
-sqrt(mean(ptrain$revenue - pred.ridgetrain)^2)
+sqrt(mean((ptrain$revenue - pred.ridgetrain)^2))
 # test error
 pred.ridgetest <- predict(fit.ridge, pvalid.mat[, -1], s = bestlam2)
-sqrt(mean(pvalid$revenue - pred.ridgetest)^2)
+sqrt(mean((pvalid$revenue - pred.ridgetest)^2))
+
+# linear Ridge regression #2 (lam2.1se)
+fit.ridge2 <- glmnet(ptrain.mat[, -1], ptrain$revenue, alpha = 0, lambda = lam2.1se)
+fit.ridge2$beta # coefficients
+# training error
+pred.ridgetrain2 <- predict(fit.ridge, ptrain.mat[, -1], s = lam2.1se) 
+sqrt(mean((ptrain$revenue - pred.ridgetrain2)^2))
+# test error
+pred.ridgetest2 <- predict(fit.ridge, pvalid.mat[, -1], s = lam2.1se)
+sqrt(mean((pvalid$revenue - pred.ridgetest2)^2))
