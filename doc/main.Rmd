@@ -33,6 +33,7 @@ Ideally, the end result of this project will be an "MSE/metrics table" of sorts 
 Install required packages
 ```{r load libraries, warning=FALSE, message=FALSE, echo=FALSE}
 
+#setwd("../Fall2018-project5-sec2proj5-grp3/")
 
 packages.used=c("glmnet", "ggplot2", "tidyverse", "pscl", "UBL", "ggraph", "igraph", "MASS", "lubridate", "e1071", "gridExtra", "penalizedLDA", "psych", "irr", "pROC", "caret", "zoo", "DMwR", "ROSE", "xgboost", "earth")
 
@@ -583,9 +584,132 @@ ggplot(data = finalpreds) +
 # but technically, it has a better MSE than XGBoost + Tweedie!
 ```
 
+
 ##Model 2: #Boosted Trees SMOTE + xgBoost / Splines
 
+#Not boosted trees
 The team attempted multiple classification tree models. First was a normal classification tree, then ROSE and SMOTE. These latter two models down sample the majority class (in this case, those who make no purchase) and create new minority class data points.
+```{r}
+# Different Classfication Tree Models to run for Step 1
+
+# 1) Classfication Tree
+
+library(caret)
+library(tidyverse)
+library(zoo)
+library(DMwR)
+library(rpart)
+
+load("./output/oldcleaned.Rdata")
+
+# Splitting the data into training and test
+set.seed(100)
+samp <- sample(nrow(newdat), 0.7*nrow(newdat), replace = FALSE)
+train <- newdat[samp,]
+test <- newdat[-samp,]
+
+# Fitting the model
+set.seed(100)
+cltree <- train(is.paid ~ .,
+                data = train[,-1],
+                parms = list(split = "gini"),
+                method = "rpart",
+                trControl = trainControl(method = "cv"))
+
+
+# Predicting the class labels for the test set
+ct.pred <- predict(cltree, newdata = test[,-1])
+
+# Confusion Matrix for the predicted classes (positive class is is.paid = 1)
+conf <- table(ct.pred, test$is.paid); conf
+
+# Precision (true pos/true pos + false pos)
+prec <- conf[2,2]/sum(conf[2,]); prec
+
+# Recall (true pos/true pos + false neg)
+rec <- conf[2,2]/sum(conf[,2]); rec
+
+# F1 Score
+f1 <- 2*(rec*prec)/(rec+prec); f1
+
+
+# 2) ROSEd classification tree
+
+#Final ROSEd newdataset
+rose_train <- ROSE(is.paid ~ ., data  = data.frame(train))$data
+
+# Fitting the model
+set.seed(100)
+rose.cltree <- train(factor(is.paid) ~ .,
+                data = rose_train[,-1],
+                parms = list(split = "gini"),
+                method = "rpart",
+                trControl = trainControl(method = "cv"))
+
+
+# Predicting the class labels for the test set
+rose.ct.pred <- predict(rose.cltree, newdata = test[,-1])
+
+# Confusion Matrix for the predicted classes (positive class is is.paid = 1)
+rose.conf <- table(rose.ct.pred, test$is.paid); rose.conf
+
+# Precision (true pos/true pos + false pos)
+rose.prec <- rose.conf[2,2]/sum(rose.conf[2,]); rose.prec
+
+# Recall (true pos/true pos + false neg)
+rose.rec <- rose.conf[2,2]/sum(rose.conf[,2]); rose.rec
+
+# F1 Score
+rose.f1 <- 2*(rose.rec*rose.prec)/(rose.rec+rose.prec); rose.f1
+
+
+
+# 3) SMOTEd classification tree
+
+#Final SMOTEd newdataset
+smote_train <- SMOTE(is.paid ~ ., data  = data.frame(train))
+
+# Fitting the model
+set.seed(100)
+smote.cltree <- train(factor(is.paid) ~ .,
+                     data = smote_train[,-1],
+                     parms = list(split = "gini"),
+                     method = "rpart",
+                     trControl = trainControl(method = "cv"))
+
+
+# Predicting the class labels for the test set
+smote.ct.pred <- predict(smote.cltree, newdata = test[,-1])
+
+# Confusion Matrix for the predicted classes (positive class is is.paid = 1)
+smote.conf <- table(smote.ct.pred, test$is.paid); smote.conf
+
+# Precision (true pos/true pos + false pos)
+smote.prec <- smote.conf[2,2]/sum(smote.conf[2,]); smote.prec
+
+# Recall (true pos/true pos + false neg)
+smote.rec <- smote.conf[2,2]/sum(smote.conf[,2]); smote.rec
+
+# F1 Score
+smote.f1 <- 2*(smote.rec*smote.prec)/(smote.rec+smote.prec); smote.f1
+
+
+
+# Summary
+
+eval.sum <- data.frame(method = c("Normal","ROSE","SMOTE"),
+                       precision = c(prec,rose.prec,smote.prec),
+                       recall = c(rec,rose.rec,smote.rec),
+                       f1score = c(f1,rose.f1,smote.f1))
+
+#save(eval.sum, file = "./newdata/cltree-eval.Rdata")
+
+
+```
+
+#Boosted trees
+
+The following applies boosting to the same base tree and oversampling techniques mentioned above (ROSE and SMOTE). 
 ```{r}
 # Different XgBoost Models to run for Step 1
 
@@ -704,7 +828,7 @@ xgbct.eval.sum <- data.frame(method = c("Normal","ROSE","SMOTE"),
 
 #save(xgbct.eval.sum, file = "./data/xgbtree-eval.Rdata")
 ```
-Ultimately, the team decided to use SMOTE.
+Ultimately, the team decided to use the Boosted Trees using SMOTE.
 
 
 
